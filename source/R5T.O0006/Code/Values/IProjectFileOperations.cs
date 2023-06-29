@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
+using R5T.L0032.T000;
 using R5T.T0131;
 using R5T.T0172;
 using R5T.T0172.Extensions;
@@ -16,6 +17,129 @@ namespace R5T.O0006
     [ValuesMarker]
     public partial interface IProjectFileOperations : IValuesMarker
     {
+        /// <summary>
+        /// Allows writing out the modified project file to a different path (useful during construction and testing).
+        /// </summary>
+        public async Task IdentifyAndRemedyVariances(
+            IProjectFilePath inputProjectFilePath,
+            IProjectFilePath outputProjectFilePath)
+        {
+            var projectIsInPrivateGitHubRepository = await this.Is_InPrivateGitHubRepository(inputProjectFilePath);
+
+            await this.In_Modify_ProjectElementContext(
+                inputProjectFilePath,
+                outputProjectFilePath,
+                projectElement =>
+                {
+                    Instances.ProjectElementOperations.IdentifyAndRemedyVariances(
+                        projectElement,
+                        projectIsInPrivateGitHubRepository);
+                });
+        }
+
+        public Task IdentifyAndRemedyVariances(IProjectFilePath projectFilePath)
+        {
+            return this.IdentifyAndRemedyVariances(
+                projectFilePath,
+                projectFilePath);
+        }
+
+        public async Task In_Modify_ProjectElementContext(
+            IProjectFilePath inputProjectFilePath,
+            IProjectFilePath outputProjectFilePath,
+            Action<IProjectElement> projectElementAction = default)
+        {
+            var projectElement = await Instances.ProjectElementOperations.From(inputProjectFilePath);
+
+            Instances.ActionOperator.Run(
+                projectElementAction,
+                projectElement);
+
+            await Instances.ProjectElementOperations.To_File(
+                outputProjectFilePath,
+                projectElement);
+        }
+
+        public async Task In_Modify_ProjectElementContext(
+            IProjectFilePath inputProjectFilePath,
+            IProjectFilePath outputProjectFilePath,
+            Func<IProjectElement, Task> projectElementAction = default)
+        {
+            var projectElement = await Instances.ProjectElementOperations.From(inputProjectFilePath);
+
+            await Instances.ActionOperator.Run(
+                projectElementAction,
+                projectElement);
+
+            await Instances.ProjectElementOperations.To_File(
+                outputProjectFilePath,
+                projectElement);
+        }
+
+        public Task In_Modify_ProjectElementContext(
+            IProjectFilePath projectFilePath,
+            Action<IProjectElement> projectElementAction = default)
+        {
+            return this.In_Modify_ProjectElementContext(
+                projectFilePath,
+                projectFilePath,
+                projectElementAction);
+        }
+
+        public Task In_Modify_ProjectElementContext(
+            IProjectFilePath projectFilePath,
+            Func<IProjectElement, Task> projectElementAction = default)
+        {
+            return this.In_Modify_ProjectElementContext(
+                projectFilePath,
+                projectFilePath,
+                projectElementAction);
+        }
+
+        /// <summary>
+        /// Adds the <see cref="L0032.Z000.ICustomProjectElementNames.PrivateGitHubRepository"/>.
+        /// </summary>
+        public Task Add_PrivateGitHubRepositoryProperty(IProjectFilePath projectFilePath)
+        {
+            return this.Ensure_HasPrivateGitHubRepositoryProperty(projectFilePath);
+        }
+
+        /// <summary>
+        /// Sets the <see cref="L0032.Z000.ICustomProjectElementNames.PrivateGitHubRepository"/> based on whether the project file is in a private GitHub repository.
+        /// </summary>
+        public Task Set_PrivateGitHubRepositoryProperty(IProjectFilePath projectFilePath)
+        {
+            return this.In_Modify_ProjectElementContext(
+                projectFilePath,
+                projectElement =>
+                {
+                    return Instances.ProjectElementOperations.Set_PrivateGitHubRepositoryProperty(
+                        projectElement,
+                        projectFilePath);
+                });
+        }
+
+        public Task Ensure_HasPrivateGitHubRepositoryProperty(IProjectFilePath projectFilePath)
+        {
+            return Instances.ProjectFileXmlOperator.In_ModifyProjectElementContext(
+                projectFilePath,
+                projectElement =>
+                {
+                    Instances.ProjectXmlOperator.In_CustomPropertyGroupElementContext(
+                        projectElement,
+                        customPropertyGroupElement =>
+                        {
+                            Instances.CustomPropertyGroupElementOperator.Ensure_HasPrivateGitHubRepositoryProperty(customPropertyGroupElement);
+                        });
+                });
+        }
+
+        public Task<bool> Is_InPrivateGitHubRepository(IProjectFilePath projectFilePath)
+        {
+            var output = Instances.ProjectFilePathOperations.Is_InPrivateGitHubRepository(projectFilePath);
+            return output;
+        }
+
         public async Task<PackageReference[]> Get_PackageReferences(IProjectFilePath projectFilePath)
         {
             var packageReferences = await Instances.ProjectFileXmlOperator.Query_ProjectElementContext(
