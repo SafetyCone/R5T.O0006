@@ -160,6 +160,7 @@ namespace R5T.O0006
             return output;
         }
 
+        /// <inheritdoc cref="F0016.F001.IProjectReferencesOperator.GetAllRecursiveProjectReferences(IEnumerable{string})"/>
         public async Task<IProjectFilePath[]> Get_RecursiveProjectReferences(
             IProjectFilePath projectFilePath)
         {
