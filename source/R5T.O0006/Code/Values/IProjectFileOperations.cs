@@ -52,8 +52,8 @@ namespace R5T.O0006
             var projectElement = await Instances.ProjectElementOperations.From(inputProjectFilePath);
 
             Instances.ActionOperator.Run(
-                projectElementAction,
-                projectElement);
+                projectElement,
+                projectElementAction);
 
             await Instances.ProjectElementOperations.To_File(
                 outputProjectFilePath,
@@ -246,7 +246,7 @@ namespace R5T.O0006
         {
             var recursiveProjectReferences = await this.Get_RecursiveProjectReferences(projectFilePath);
 
-            await Instances.FileOperator.WriteLines(
+            await Instances.FileOperator.Write_Lines(
                 textFilePath.Value,
                 recursiveProjectReferences.Get_Values().OrderAlphabetically());
         }
