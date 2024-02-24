@@ -26,7 +26,7 @@ namespace R5T.O0006.O001.Internal
                 projectName);
 
             // If the project file exists, delete it.
-            Instances.FileSystemOperator.DeleteFile_OkIfNotExists(
+            Instances.FileSystemOperator.Delete_File_OkIfNotExists(
                 projectFilePath.Value);
 
             // Now create and return the context.
